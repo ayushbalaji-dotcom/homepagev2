@@ -1,0 +1,309 @@
+{
+  "name": "CHAD VASC Trial",
+  "description": "",
+  "inputs": [
+    {
+      "id": "does_the_patient_have_congestive_heart_failure_or_lv_dysfunction",
+      "label": "Does the patient have congestive heart failure or LV dysfunction?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_hypertension",
+      "label": "Does the patient have hypertension?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_75_years_or_older",
+      "label": "Is the patient 75 years or older?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_diabetes",
+      "label": "Does the patient have diabetes?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "has_the_patient_had_a_previous_stroke_tia_or_systemic_embolism",
+      "label": "Has the patient had a previous stroke, TIA, or systemic embolism?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_vascular_disease_e_g_previous_mi_pad_or_aortic_plaque",
+      "label": "Does the patient have vascular disease (e.g., previous MI, PAD, or aortic plaque)?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_between_65_and_74_years_old",
+      "label": "Is the patient between 65 and 74 years old?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_female",
+      "label": "Is the patient female?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    }
+  ],
+  "scoring_rules": [
+    {
+      "input_id": "does_the_patient_have_congestive_heart_failure_or_lv_dysfunction",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 1
+    },
+    {
+      "input_id": "does_the_patient_have_hypertension",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 1
+    },
+    {
+      "input_id": "is_the_patient_75_years_or_older",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 2
+    },
+    {
+      "input_id": "does_the_patient_have_diabetes",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 1
+    },
+    {
+      "input_id": "has_the_patient_had_a_previous_stroke_tia_or_systemic_embolism",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 2
+    },
+    {
+      "input_id": "does_the_patient_have_vascular_disease_e_g_previous_mi_pad_or_aortic_plaque",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 1
+    },
+    {
+      "input_id": "is_the_patient_between_65_and_74_years_old",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 1
+    },
+    {
+      "input_id": "is_the_patient_female",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [],
+      "invert_favor": false,
+      "weight": 1
+    }
+  ],
+  "rules": [
+    {
+      "name": "No Anticoagulation (Men, Score 0)",
+      "level": "info",
+      "message": "No anticoagulation is needed.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_female",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_congestive_heart_failure_or_lv_dysfunction",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_hypertension",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "is_the_patient_75_years_or_older",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_diabetes",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "has_the_patient_had_a_previous_stroke_tia_or_systemic_embolism",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_vascular_disease_e_g_previous_mi_pad_or_aortic_plaque",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "is_the_patient_between_65_and_74_years_old",
+          "op": "equals",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "name": "No Anticoagulation (Women, Score 1 from sex alone)",
+      "level": "info",
+      "message": "No anticoagulation is needed.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_female",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "does_the_patient_have_congestive_heart_failure_or_lv_dysfunction",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_hypertension",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "is_the_patient_75_years_or_older",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_diabetes",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "has_the_patient_had_a_previous_stroke_tia_or_systemic_embolism",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_vascular_disease_e_g_previous_mi_pad_or_aortic_plaque",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "is_the_patient_between_65_and_74_years_old",
+          "op": "equals",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "name": "Consider Anticoagulation (Men, Score 1)",
+      "level": "info",
+      "message": "Consider anticoagulation depending on bleeding risk and patient factors.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_female",
+          "op": "equals",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "name": "Consider Anticoagulation (Women, Score 2)",
+      "level": "info",
+      "message": "Consider anticoagulation depending on bleeding risk and patient factors.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_female",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "Anticoagulation Recommended (Men, Score >=2)",
+      "level": "success",
+      "message": "Anticoagulation is recommended, usually with a DOAC (e.g. apixaban/rivaroxaban) unless contraindicated, in which case warfarin is used.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_female",
+          "op": "equals",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "name": "Anticoagulation Recommended (Women, Score >=3)",
+      "level": "success",
+      "message": "Anticoagulation is recommended, usually with a DOAC (e.g. apixaban/rivaroxaban) unless contraindicated, in which case warfarin is used.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_female",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    }
+  ],
+  "fallback": {
+    "level": "warning",
+    "message": "No rules matched."
+  },
+  "scoring_mode": "positive-only"
+}
