@@ -1,0 +1,253 @@
+{
+  "name": "Interventions for Severe Aortic Regurgitation ",
+  "description": "",
+  "inputs": [
+    {
+      "id": "is_the_patient_symptomatic",
+      "label": "Is the patient symptomatic?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+      "label": "Does the patient have severe aortic regurgitation (AR)?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "what_is_the_lv_end_systolic_diameter_lvesd_in_mm",
+      "label": "What is the LV end-systolic diameter (LVESD) in mm?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "what_is_the_lv_end_systolic_diameter_index_lvesdi_in_mm_m",
+      "label": "What is the LV end-systolic diameter index (LVESDi) in mm/m\u00b2?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "what_is_the_patient_s_body_surface_area_bsa_in_m",
+      "label": "What is the patient's body surface area (BSA) in m\u00b2?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "what_is_the_resting_left_ventricular_ejection_fraction_lvef_in",
+      "label": "What is the resting left ventricular ejection fraction (LVEF) in %?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "is_the_patient_considered_young_for_valve_surgery",
+      "label": "Is the patient considered young for valve surgery?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_aortic_root_dilatation",
+      "label": "Does the patient have aortic root dilatation?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "are_durable_results_expected_from_a_valve_sparing_procedure",
+      "label": "Are durable results expected from a valve-sparing procedure?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_undergoing_coronary_artery_bypass_grafting_cabg",
+      "label": "Is the patient undergoing coronary artery bypass grafting (CABG)?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_undergoing_surgery_of_the_ascending_aorta",
+      "label": "Is the patient undergoing surgery of the ascending aorta?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    }
+  ],
+  "scoring_rules": [],
+  "rules": [
+    {
+      "name": "Class I B: AV Surgery for Symptomatic Severe AR",
+      "level": "success",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in symptomatic patients with severe aortic regurgitation (AR), regardless of left ventricular (LV) function.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "Class I B: AV Surgery for Asymptomatic Severe AR with LVESD >50mm",
+      "level": "success",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in asymptomatic patients with severe AR and LV end-systolic diameter (LVESD) >50 mm.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "what_is_the_lv_end_systolic_diameter_lvesd_in_mm",
+          "op": "equals",
+          "value": ">50"
+        }
+      ]
+    },
+    {
+      "name": "Class I B: AV Surgery for Asymptomatic Severe AR with LVESDi >25mm/m\u00b2",
+      "level": "success",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in asymptomatic patients with severe AR and LVESD index (LVESDi) >25 mm/m\u00b2.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "what_is_the_lv_end_systolic_diameter_index_lvesdi_in_mm_m",
+          "op": "equals",
+          "value": ">25"
+        }
+      ]
+    },
+    {
+      "name": "Class I B: AV Surgery for Asymptomatic Severe AR with LVEF <=50%",
+      "level": "success",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in asymptomatic patients with severe AR and resting left ventricular ejection fraction (LVEF) \u226450%.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "what_is_the_resting_left_ventricular_ejection_fraction_lvef_in",
+          "op": "equals",
+          "value": "<=50"
+        }
+      ]
+    },
+    {
+      "name": "Class I B: Valve-Sparing Aortic Root Replacement",
+      "level": "success",
+      "message": "Class I B: Valve-sparing aortic root replacement is recommended in young patients with aortic root dilatation at experienced centres when durable results are expected.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_considered_young_for_valve_surgery",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "does_the_patient_have_aortic_root_dilatation",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "are_durable_results_expected_from_a_valve_sparing_procedure",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "Class I C: AV Surgery for Severe AR Undergoing CABG",
+      "level": "success",
+      "message": "Class I C: Aortic valve (AV) surgery is recommended in symptomatic and asymptomatic patients with severe AR undergoing coronary artery bypass grafting (CABG).",
+      "conditions": [
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "is_the_patient_undergoing_coronary_artery_bypass_grafting_cabg",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "Class I C: AV Surgery for Severe AR Undergoing Ascending Aorta Surgery",
+      "level": "success",
+      "message": "Class I C: Aortic valve (AV) surgery is recommended in symptomatic and asymptomatic patients with severe AR undergoing surgery of the ascending aorta.",
+      "conditions": [
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "is_the_patient_undergoing_surgery_of_the_ascending_aorta",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    }
+  ],
+  "fallback": {
+    "level": "warning",
+    "message": "No rules matched."
+  },
+  "scoring_mode": "signed",
+  "scoring_recommendations": []
+}
