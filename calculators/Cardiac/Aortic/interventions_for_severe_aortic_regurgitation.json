@@ -1,0 +1,167 @@
+{
+  "name": "Interventions for Severe Aortic Regurgitation",
+  "description": "",
+  "inputs": [
+    {
+      "id": "is_the_patient_symptomatic",
+      "label": "Is the patient symptomatic?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+      "label": "Does the patient have severe aortic regurgitation (AR)?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "what_is_the_lv_end_systolic_diameter_lvesd_in_mm",
+      "label": "What is the LV end-systolic diameter (LVESD) in mm?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "what_is_the_lvesd_index_lvesdi_in_mm_m",
+      "label": "What is the LVESD index (LVESDi) in mm/m\u00b2?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "is_the_patient_s_body_surface_area_bsa_1_68_m",
+      "label": "Is the patient's body surface area (BSA) < 1.68 m\u00b2?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "what_is_the_resting_left_ventricular_ejection_fraction_lvef_in",
+      "label": "What is the resting left ventricular ejection fraction (LVEF) in %?",
+      "type": "number",
+      "options": []
+    },
+    {
+      "id": "is_the_patient_young",
+      "label": "Is the patient young?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "does_the_patient_have_aortic_root_dilatation",
+      "label": "Does the patient have aortic root dilatation?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_undergoing_coronary_artery_bypass_grafting_cabg",
+      "label": "Is the patient undergoing coronary artery bypass grafting (CABG)?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "is_the_patient_undergoing_surgery_of_the_ascending_aorta",
+      "label": "Is the patient undergoing surgery of the ascending aorta?",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Unknown"
+      ]
+    }
+  ],
+  "scoring_rules": [],
+  "rules": [
+    {
+      "name": "Class I B: AV Surgery for Symptomatic Severe AR",
+      "level": "info",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in symptomatic patients with severe aortic regurgitation (AR), regardless of left ventricular (LV) function.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "Class I B: AV Surgery for Asymptomatic Severe AR with LVESD >50mm",
+      "level": "info",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in asymptomatic patients with severe AR and LV end-systolic diameter (LVESD) >50 mm.",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "what_is_the_lv_end_systolic_diameter_lvesd_in_mm",
+          "op": "equals",
+          "value": ">50"
+        }
+      ]
+    },
+    {
+      "name": "Class I B: AV Surgery for Asymptomatic Severe AR with LVESDi >25mm/m\u00b2",
+      "level": "info",
+      "message": "Class I B: Aortic valve (AV) surgery is recommended in asymptomatic patients with severe AR and LVESD index (LVESDi) >25 mm/m\u00b2 (especially in patients with small body size, BSA <1.68 m\u00b2).",
+      "conditions": [
+        {
+          "input_id": "is_the_patient_symptomatic",
+          "op": "equals",
+          "value": "No"
+        },
+        {
+          "input_id": "does_the_patient_have_severe_aortic_regurgitation_ar",
+          "op": "equals",
+          "value": "Yes"
+        },
+        {
+          "input_id": "what_is_the_lvesd_index_lvesdi_in_mm_m",
+          "op": "equals",
+          "value": ">25"
+        },
+        {
+          "input_id": "is_the_patient_s_body_surface_area_bsa_1_68_m",
+          "op": "equals",
+          "value": "Yes"
+        }
+      ]
+    }
+  ],
+  "scoring_recommendations": [],
+  "scoring_mode": "signed",
+  "category": "Cardiac",
+  "subcategory": "Aortic"
+}
