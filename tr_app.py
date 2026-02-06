@@ -5,6 +5,12 @@ import streamlit as st
 
 CALCULATORS_DIR = "calculators"
 
+CATEGORIES = {
+    "Cardiac": ["Coronary", "Aortic", "Tricuspid", "Mitral", "Pulmonary", "Arrhythmia", "Miscellaneous"],
+    "Thoracic": ["Malignant", "Benign"],
+    "Transplant": [],
+}
+
 LEVELS = {
     "success": st.success,
     "info": st.info,
@@ -18,18 +24,32 @@ def load_calculators():
     if not os.path.isdir(CALCULATORS_DIR):
         return calculators
 
-    for filename in sorted(os.listdir(CALCULATORS_DIR)):
-        if not filename.endswith(".json"):
-            continue
-        path = os.path.join(CALCULATORS_DIR, filename)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except (OSError, json.JSONDecodeError):
-            continue
+    for root, _dirs, files in os.walk(CALCULATORS_DIR):
+        for filename in sorted(files):
+            if not filename.endswith(".json"):
+                continue
+            path = os.path.join(root, filename)
+            rel_path = os.path.relpath(path, CALCULATORS_DIR)
+            parts = rel_path.split(os.sep)
+            category = parts[0] if len(parts) > 1 else "Uncategorized"
+            subcategory = parts[1] if len(parts) > 2 else ""
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except (OSError, json.JSONDecodeError):
+                continue
 
-        name = data.get("name") or os.path.splitext(filename)[0]
-        calculators.append({"id": filename, "name": name, "path": path, "data": data})
+            name = data.get("name") or os.path.splitext(filename)[0]
+            calculators.append(
+                {
+                    "id": rel_path,
+                    "name": name,
+                    "path": path,
+                    "data": data,
+                    "category": category,
+                    "subcategory": subcategory,
+                }
+            )
 
     return calculators
 
@@ -114,13 +134,20 @@ def main():
 
     with st.sidebar:
         st.subheader("Add Calculator")
+        category = st.selectbox("Category", list(CATEGORIES.keys()))
+        subcategory = ""
+        if CATEGORIES[category]:
+            subcategory = st.selectbox("Subcategory", CATEGORIES[category])
         upload = st.file_uploader("Upload calculator JSON", type=["json"])
         overwrite = st.checkbox("Overwrite if name exists", value=False)
 
         if upload is not None:
-            os.makedirs(CALCULATORS_DIR, exist_ok=True)
+            target_dir = os.path.join(CALCULATORS_DIR, category)
+            if subcategory:
+                target_dir = os.path.join(target_dir, subcategory)
+            os.makedirs(target_dir, exist_ok=True)
             filename = os.path.basename(upload.name)
-            dest = os.path.join(CALCULATORS_DIR, filename)
+            dest = os.path.join(target_dir, filename)
             if os.path.exists(dest) and not overwrite:
                 st.warning(f"{filename} already exists. Check overwrite to replace it.")
             else:
@@ -131,11 +158,16 @@ def main():
 
         st.divider()
         st.subheader("Delete Calculator")
+        delete_category = st.selectbox("Delete Category", list(CATEGORIES.keys()), key="delete_category")
+        delete_subcategory = ""
+        if CATEGORIES[delete_category]:
+            delete_subcategory = st.selectbox("Delete Subcategory", CATEGORIES[delete_category], key="delete_subcategory")
+        delete_dir = os.path.join(CALCULATORS_DIR, delete_category)
+        if delete_subcategory:
+            delete_dir = os.path.join(delete_dir, delete_subcategory)
         existing_files = [
-            f
-            for f in sorted(os.listdir(CALCULATORS_DIR))
-            if f.endswith(".json")
-        ] if os.path.isdir(CALCULATORS_DIR) else []
+            f for f in sorted(os.listdir(delete_dir)) if f.endswith(".json")
+        ] if os.path.isdir(delete_dir) else []
 
         if not existing_files:
             st.caption("No calculators to delete.")
@@ -147,7 +179,7 @@ def main():
                     st.warning("Please confirm deletion first.")
                 else:
                     try:
-                        os.remove(os.path.join(CALCULATORS_DIR, delete_target))
+                        os.remove(os.path.join(delete_dir, delete_target))
                         st.success(f"Deleted {delete_target}.")
                         st.rerun()
                     except OSError as exc:
@@ -158,9 +190,18 @@ def main():
         st.info("No calculators found. Add JSON files to the calculators/ folder.")
         return
 
-    labels = [calc["name"] for calc in calculators]
+    category_choice = st.selectbox("Section", ["Cardiac", "Thoracic", "Transplant", "Uncategorized"])
+    filtered = [c for c in calculators if c["category"].lower() == category_choice.lower()]
+    if category_choice in CATEGORIES and CATEGORIES[category_choice]:
+        sub_choice = st.selectbox("Subsection", CATEGORIES[category_choice])
+        filtered = [c for c in filtered if c["subcategory"].lower() == sub_choice.lower()]
+
+    labels = [calc["name"] for calc in filtered]
+    if not labels:
+        st.info("No calculators found in this section.")
+        return
     selected_label = st.selectbox("Choose a calculator", labels)
-    selected = calculators[labels.index(selected_label)]
+    selected = filtered[labels.index(selected_label)]
     tool = selected["data"]
 
     st.divider()
