@@ -60,28 +60,45 @@ def render_message(level, message):
 
 
 def evaluate_rules(tool, values):
+    best_match = None
+    best_count = 0
+    best_ratio = 0.0
+    best_total_conditions = 0
     for rule in tool.get("rules", []):
         conditions = rule.get("conditions", [])
         if not conditions:
             continue
-        matches = True
+        matched = 0
         for cond in conditions:
             input_id = cond.get("input_id")
             expected = cond.get("value")
             actual = values.get(input_id)
-            if actual != expected:
-                matches = False
-                break
-        if matches:
-            return rule.get("level", "info"), rule.get("message", "")
+            if actual == expected:
+                matched += 1
+        ratio = matched / len(conditions) if conditions else 0.0
+        if ratio == 1.0 and best_ratio == 1.0:
+            if len(conditions) > best_total_conditions:
+                best_count = matched
+                best_ratio = ratio
+                best_total_conditions = len(conditions)
+                best_match = rule
+                continue
+        if matched > best_count or (matched == best_count and ratio > best_ratio):
+            best_count = matched
+            best_ratio = ratio
+            best_total_conditions = len(conditions)
+            best_match = rule
 
-    fallback = tool.get("fallback", {"level": "warning", "message": "No rules matched."})
-    return fallback.get("level", "warning"), fallback.get("message", "No rules matched.")
+    if best_match and best_count > 0:
+        return best_match.get("level", "info"), best_match.get("message", "")
+
+    return None, None
 
 
 def compute_scores(tool, values):
     plus = 0
     minus = 0
+    scoring_mode = tool.get("scoring_mode", "signed")
     for rule in tool.get("scoring_rules", []):
         input_id = rule.get("input_id")
         if not input_id:
@@ -100,10 +117,50 @@ def compute_scores(tool, values):
 
         if score == 1:
             plus += weight
-        elif score == -1:
+        elif score == -1 and scoring_mode == "signed":
             minus += weight
 
-    return plus, minus
+    total = plus - minus if scoring_mode == "signed" else plus
+    return plus, minus, total
+
+
+def evaluate_score_recommendation(tool, values, total_score):
+    thresholds = tool.get("scoring_recommendations", [])
+    if not thresholds:
+        return None
+    best = None
+    for item in thresholds:
+        try:
+            min_score = int(item.get("min_score"))
+        except (TypeError, ValueError):
+            continue
+        if total_score >= min_score:
+            conditions = item.get("conditions", [])
+            matched = 0
+            for cond in conditions:
+                input_id = cond.get("input_id")
+                expected = cond.get("value")
+                actual = values.get(input_id)
+                if actual == expected:
+                    matched += 1
+            if conditions and matched != len(conditions):
+                continue
+            ratio = matched / len(conditions) if conditions else 1.0
+            candidate = {
+                "min_score": min_score,
+                "level": item.get("level", "info"),
+                "message": item.get("message", ""),
+                "matched": matched,
+                "ratio": ratio,
+            }
+            if best is None:
+                best = candidate
+            else:
+                if min_score > best.get("min_score", -10**9):
+                    best = candidate
+                elif min_score == best.get("min_score", -10**9) and ratio > best.get("ratio", 0.0):
+                    best = candidate
+    return best
 
 
 def render_inputs(calc_id, inputs):
@@ -214,11 +271,21 @@ def main():
     st.divider()
     st.subheader("Results")
     level, message = evaluate_rules(tool, values)
-    render_message(level, message)
+    if level and message:
+        render_message(level, message)
 
-    plus, minus = compute_scores(tool, values)
-    st.write(f"✅ **Factors favoring intervention:** {plus}")
-    st.write(f"❌ **Factors NOT favoring intervention:** {minus}")
+    if tool.get("scoring_rules"):
+        plus, minus, total = compute_scores(tool, values)
+        score_reco = evaluate_score_recommendation(tool, values, total)
+        if score_reco:
+            render_message(score_reco.get("level", "info"), score_reco.get("message", ""))
+            st.write(f"**Score:** {total}")
+        else:
+            if tool.get("scoring_mode", "signed") == "signed":
+                st.write(f"✅ **Factors favoring intervention:** {plus}")
+                st.write(f"❌ **Factors NOT favoring intervention:** {minus}")
+            else:
+                st.write(f"**Score:** {total}")
 
 
 if __name__ == "__main__":
