@@ -60,33 +60,64 @@ def render_message(level, message):
 
 
 def evaluate_rules(tool, values):
+    def condition_match(cond):
+        input_id = cond.get("input_id")
+        expected = cond.get("value")
+        return values.get(input_id) == expected
+
+    def evaluate_condition_expression(rule):
+        conditions = rule.get("conditions", [])
+        if not conditions:
+            return False, 0, 0.0, 0
+
+        default_join = str(rule.get("condition_operator", "AND")).strip().upper()
+        if default_join not in {"AND", "OR"}:
+            default_join = "AND"
+
+        matched_count = 0
+        first_match = condition_match(conditions[0])
+        if first_match:
+            matched_count += 1
+        current_group = first_match
+        group_results = []
+
+        for cond in conditions[1:]:
+            cond_is_match = condition_match(cond)
+            if cond_is_match:
+                matched_count += 1
+            join = str(cond.get("join_with_previous", default_join)).strip().upper()
+            if join not in {"AND", "OR"}:
+                join = default_join
+            if join == "AND":
+                current_group = current_group and cond_is_match
+            else:
+                group_results.append(current_group)
+                current_group = cond_is_match
+
+        group_results.append(current_group)
+        is_match = any(group_results)
+        ratio = matched_count / len(conditions)
+        return is_match, matched_count, ratio, len(conditions)
+
     best_match = None
     best_count = 0
     best_ratio = 0.0
     best_total_conditions = 0
     for rule in tool.get("rules", []):
-        conditions = rule.get("conditions", [])
-        if not conditions:
+        is_match, matched, ratio, condition_count = evaluate_condition_expression(rule)
+        if not is_match:
             continue
-        matched = 0
-        for cond in conditions:
-            input_id = cond.get("input_id")
-            expected = cond.get("value")
-            actual = values.get(input_id)
-            if actual == expected:
-                matched += 1
-        ratio = matched / len(conditions) if conditions else 0.0
         if ratio == 1.0 and best_ratio == 1.0:
-            if len(conditions) > best_total_conditions:
+            if condition_count > best_total_conditions:
                 best_count = matched
                 best_ratio = ratio
-                best_total_conditions = len(conditions)
+                best_total_conditions = condition_count
                 best_match = rule
                 continue
         if matched > best_count or (matched == best_count and ratio > best_ratio):
             best_count = matched
             best_ratio = ratio
-            best_total_conditions = len(conditions)
+            best_total_conditions = condition_count
             best_match = rule
 
     if best_match and best_count > 0:
