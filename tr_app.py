@@ -59,9 +59,6 @@ def render_message(level, message):
     handler(message)
 
 
-# =========================
-# SINGLE-MATCH RULE ENGINE
-# =========================
 def evaluate_rules(tool, values):
     def condition_match(cond):
         input_id = cond.get("input_id")
@@ -107,32 +104,30 @@ def evaluate_rules(tool, values):
         return is_match, matched_count, ratio, len(conditions)
 
     best_match = None
+    best_count = 0
+    best_ratio = 0.0
+    best_total_conditions = 0
 
     for rule in tool.get("rules", []):
         is_match, matched, ratio, condition_count = evaluate_condition_expression(rule)
         if not is_match:
             continue
+        if ratio == 1.0 and best_ratio == 1.0:
+            if condition_count > best_total_conditions:
+                best_match = rule
+                best_count = matched
+                best_ratio = ratio
+                best_total_conditions = condition_count
+                continue
+        if matched > best_count or (matched == best_count and ratio > best_ratio):
+            best_match = rule
+            best_count = matched
+            best_ratio = ratio
+            best_total_conditions = condition_count
 
-        candidate = {
-            "rule": rule,
-            "matched": matched,
-            "ratio": ratio,
-            "condition_count": condition_count,
-        }
-
-        if best_match is None:
-            best_match = candidate
-        else:
-            # Prefer stronger / more complete matches
-            if (
-                (ratio == 1.0 and best_match["ratio"] != 1.0)
-                or (matched > best_match["matched"])
-                or (ratio > best_match["ratio"])
-                or (condition_count > best_match["condition_count"])
-            ):
-                best_match = candidate
-
-    return [best_match] if best_match else []
+    if best_match:
+        return best_match
+    return None
 
 
 def compute_scores(tool, values):
@@ -194,8 +189,13 @@ def evaluate_score_recommendation(tool, values, total_score):
                 "matched": matched,
                 "ratio": ratio,
             }
-            if best is None or min_score > best.get("min_score", -10**9):
+            if best is None:
                 best = candidate
+            else:
+                if min_score > best.get("min_score", -10**9):
+                    best = candidate
+                elif min_score == best.get("min_score", -10**9) and ratio > best.get("ratio", 0.0):
+                    best = candidate
     return best
 
 
@@ -248,8 +248,8 @@ def build_decision_tree_graph(tool, id_to_label, values=None):
             cond_label = f"{input_label} {operator_label} {value}".replace('"', "'")
             matched = condition_match(cond)
             cond_attrs = 'fillcolor="white"'
-            if values:
-                cond_attrs = 'fillcolor="palegreen", color="green"' if matched else 'fillcolor="mistyrose", color="red"'
+            if values and matched:
+                cond_attrs = 'fillcolor="palegreen", color="green"'
             lines.append(f'{cond_node} [label="{cond_label}", {cond_attrs}];')
             lines.append(f"{prev_node} -> {cond_node};")
             prev_node = cond_node
@@ -293,6 +293,59 @@ def main():
     st.title("Calculator Home")
     st.caption("Select a calculator and run it. Upload new JSONs to the repo to add more.")
 
+    with st.sidebar:
+        st.subheader("Add Calculator")
+        category = st.selectbox("Category", list(CATEGORIES.keys()))
+        subcategory = ""
+        if CATEGORIES[category]:
+            subcategory = st.selectbox("Subcategory", CATEGORIES[category])
+        upload = st.file_uploader("Upload calculator JSON", type=["json"])
+        overwrite = st.checkbox("Overwrite if name exists", value=False)
+
+        if upload is not None:
+            target_dir = os.path.join(CALCULATORS_DIR, category)
+            if subcategory:
+                target_dir = os.path.join(target_dir, subcategory)
+            os.makedirs(target_dir, exist_ok=True)
+            filename = os.path.basename(upload.name)
+            dest = os.path.join(target_dir, filename)
+            if os.path.exists(dest) and not overwrite:
+                st.warning(f"{filename} already exists. Check overwrite to replace it.")
+            else:
+                with open(dest, "wb") as f:
+                    f.write(upload.getbuffer())
+                st.success(f"Uploaded {filename}.")
+                st.rerun()
+
+        st.divider()
+        st.subheader("Delete Calculator")
+        delete_category = st.selectbox("Delete Category", list(CATEGORIES.keys()), key="delete_category")
+        delete_subcategory = ""
+        if CATEGORIES[delete_category]:
+            delete_subcategory = st.selectbox("Delete Subcategory", CATEGORIES[delete_category], key="delete_subcategory")
+        delete_dir = os.path.join(CALCULATORS_DIR, delete_category)
+        if delete_subcategory:
+            delete_dir = os.path.join(delete_dir, delete_subcategory)
+        existing_files = [
+            f for f in sorted(os.listdir(delete_dir)) if f.endswith(".json")
+        ] if os.path.isdir(delete_dir) else []
+
+        if not existing_files:
+            st.caption("No calculators to delete.")
+        else:
+            delete_target = st.selectbox("Select calculator to delete", existing_files)
+            confirm_delete = st.checkbox("I understand this will delete the file")
+            if st.button("Delete selected"):
+                if not confirm_delete:
+                    st.warning("Please confirm deletion first.")
+                else:
+                    try:
+                        os.remove(os.path.join(delete_dir, delete_target))
+                        st.success(f"Deleted {delete_target}.")
+                        st.rerun()
+                    except OSError as exc:
+                        st.error(f"Failed to delete: {exc}")
+
     calculators = load_calculators()
     if not calculators:
         st.info("No calculators found. Add JSON files to the calculators/ folder.")
@@ -321,10 +374,12 @@ def main():
 
     st.divider()
     st.subheader("Results")
-    matches = evaluate_rules(tool, values)
-    if matches:
-        rule = matches[0]["rule"]
-        render_message(rule.get("level", "info"), rule.get("message", ""))
+    rule = evaluate_rules(tool, values)
+    if rule:
+        level = rule.get("level", "info")
+        message = rule.get("message", "")
+        if level and message:
+            render_message(level, message)
 
     if tool.get("scoring_rules"):
         plus, minus, total = compute_scores(tool, values)
@@ -332,6 +387,12 @@ def main():
         if score_reco:
             render_message(score_reco.get("level", "info"), score_reco.get("message", ""))
             st.write(f"**Score:** {total}")
+        else:
+            if tool.get("scoring_mode", "signed") == "signed":
+                st.write(f"✅ **Factors favoring intervention:** {plus}")
+                st.write(f"❌ **Factors NOT favoring intervention:** {minus}")
+            else:
+                st.write(f"**Score:** {total}")
 
     if st.checkbox("Show decision tree", key=f"show_decision_tree_{selected['id']}"):
         id_to_label = build_label_maps(tool.get("inputs", []))
