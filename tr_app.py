@@ -293,6 +293,9 @@ def main():
     st.title("Calculator Home")
     st.caption("Select a calculator and run it. Upload new JSONs to the repo to add more.")
 
+    if "selected_calc_id" not in st.session_state:
+        st.session_state.selected_calc_id = None
+
     with st.sidebar:
         st.subheader("Add Calculator")
         category = st.selectbox("Category", list(CATEGORIES.keys()))
@@ -357,12 +360,26 @@ def main():
         sub_choice = st.selectbox("Subsection", CATEGORIES[category_choice])
         filtered = [c for c in filtered if c["subcategory"].lower() == sub_choice.lower()]
 
-    labels = [calc["name"] for calc in filtered]
-    if not labels:
+    display_labels = []
+    label_to_id = {}
+    for calc in filtered:
+        sub = calc["subcategory"] or "General"
+        display = f"{calc['name']} ({calc['category']} / {sub})"
+        display_labels.append(display)
+        label_to_id[display] = calc["id"]
+
+    if not display_labels:
         st.info("No calculators found in this section.")
         return
-    selected_label = st.selectbox("Choose a calculator", labels)
-    selected = filtered[labels.index(selected_label)]
+    selected_label = st.selectbox("Choose a calculator", display_labels)
+    selected_id = label_to_id[selected_label]
+    if st.session_state.selected_calc_id and st.session_state.selected_calc_id != selected_id:
+        old_prefix = f"{st.session_state.selected_calc_id}_"
+        for key in list(st.session_state.keys()):
+            if key.startswith(old_prefix):
+                del st.session_state[key]
+    st.session_state.selected_calc_id = selected_id
+    selected = next(calc for calc in filtered if calc["id"] == selected_id)
     tool = selected["data"]
 
     st.divider()
