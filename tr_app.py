@@ -1,6 +1,5 @@
 import base64
 import json
-import mimetypes
 import os
 from urllib import request, error
 
@@ -145,7 +144,7 @@ def resolve_guideline_image(image_value):
             content, err = fetch_github_file(path, token)
             if content:
                 if not mime:
-                    mime = mimetypes.guess_type(path)[0] or "image/png"
+                    mime = "image/png"
                 data_url = f"data:{mime};base64,{base64.b64encode(content).decode('utf-8')}"
                 return data_url, None
             if raw_url:
@@ -155,6 +154,17 @@ def resolve_guideline_image(image_value):
         if path:
             return build_raw_github_url(path), None
     return None, "Unsupported guideline image format."
+
+
+def find_local_guideline_image(json_path: str) -> str | None:
+    if not json_path:
+        return None
+    stem = os.path.splitext(json_path)[0] + "_guideline"
+    for ext in (".jpg", ".jpeg", ".png", ".gif"):
+        candidate = f"{stem}{ext}"
+        if os.path.isfile(candidate):
+            return candidate
+    return None
 
 
 def render_message(level, message):
@@ -527,6 +537,10 @@ def main():
         st.graphviz_chart(build_decision_tree_graph(tool, id_to_label, values))
 
     image_to_show, image_error = resolve_guideline_image(tool.get("guideline_image"))
+    if not image_to_show:
+        image_to_show = find_local_guideline_image(selected.get("path", ""))
+        if image_to_show:
+            image_error = None
     if image_to_show:
         st.divider()
         st.subheader("Guideline Table Image")
