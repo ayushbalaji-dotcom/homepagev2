@@ -245,5 +245,5 @@
   "scoring_mode": "signed",
   "category": "Cardiac",
   "subcategory": "Aortic",
-  "github_path": "calculators/Cardiac/Aortic/tavi_vs_savr_tool_trial.json"
+  "github_path": "calculators/Cardiac/Aortic/tavi_vs_savr_tool_trial_testing.json"
 }
