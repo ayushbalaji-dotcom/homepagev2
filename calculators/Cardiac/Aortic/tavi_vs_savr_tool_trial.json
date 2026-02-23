@@ -65,9 +65,9 @@
   "scoring_rules": [],
   "rules": [
     {
-      "name": "SAVR Recommended (Young, Low Risk - Class I, Level B)",
+      "name": "Class 1",
       "level": "success",
-      "message": "SAVR is recommended for younger, low-risk patients (Class I, Level B).",
+      "message": "Class 1: Concomitant TR Repair Recommended",
       "condition_operator": "AND",
       "conditions": [
         {
@@ -85,9 +85,9 @@
       ]
     },
     {
-      "name": "SAVR Recommended (Operable, Unsuitable TF TAVI - Class I, Level B)",
-      "level": "success",
-      "message": "SAVR is recommended for operable patients unsuitable for transfemoral TAVI (Class I, Level B).",
+      "name": "Class 2a",
+      "level": "info",
+      "message": "Class 2a: Concomitant TR Repair should be considered",
       "condition_operator": "AND",
       "conditions": [
         {
@@ -111,10 +111,10 @@
       ]
     },
     {
-      "name": "TAVI Recommended (Class I, Level A)",
-      "level": "success",
-      "message": "TAVI is recommended (Class I, Level A).",
-      "condition_operator": "OR",
+      "name": "Class 2b",
+      "level": "warning",
+      "message": "Class 2b: Concomitant TR Repair may be considered",
+      "condition_operator": "AND",
       "conditions": [
         {
           "input_id": "what_is_the_patient_s_age",
