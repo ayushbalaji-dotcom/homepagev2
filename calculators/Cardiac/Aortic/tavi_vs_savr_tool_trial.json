@@ -86,13 +86,19 @@
         {
           "input_id": "what_is_the_patient_s_age",
           "op": "equals",
-          "value": "Yes",
+          "value": "<75",
           "join_with_previous": "AND"
         },
         {
-          "input_id": "what_is_the_patient_s_age",
+          "input_id": "is_the_femoral_accessible",
           "op": "equals",
           "value": "No",
+          "join_with_previous": "AND"
+        },
+        {
+          "input_id": "what_is_the_sts_prom_euroscore_ii_score",
+          "op": "equals",
+          "value": "<4",
           "join_with_previous": "AND"
         }
       ]
@@ -114,19 +120,13 @@
           "op": "equals",
           "value": ">8",
           "join_with_previous": "AND"
-        },
-        {
-          "input_id": "what_is_the_patient_s_age",
-          "op": "equals",
-          "value": "No",
-          "join_with_previous": "AND"
         }
       ]
     },
     {
-      "name": "SAVR or TAVI Recommended (Intermediate Risk - Class I, Level B)",
+      "name": "Needs MDT ",
       "level": "info",
-      "message": "SAVR or TAVI are recommended according to individual clinical, anatomical, and procedural characteristics, requiring Heart Team assessment (Class I, Level B). Needs discussion in MDT",
+      "message": " Needs discussion in MDT",
       "condition_operator": "AND",
       "conditions": [
         {
@@ -145,6 +145,12 @@
           "input_id": "what_is_the_sts_prom_euroscore_ii_score",
           "op": "equals",
           "value": ">=8",
+          "join_with_previous": "OR"
+        },
+        {
+          "input_id": "is_the_femoral_accessible",
+          "op": "equals",
+          "value": "No",
           "join_with_previous": "OR"
         }
       ]
@@ -185,6 +191,26 @@
           "input_id": "does_the_patient_require_urgent_high_risk_non_cardiac_surgery_for_severe_aortic_stenosis",
           "op": "equals",
           "value": "Yes",
+          "join_with_previous": "AND"
+        }
+      ]
+    },
+    {
+      "name": "SAVR or TAVI are recommended according to individual clinical, anatomical, and procedural characteristics, requiring Heart Team assessment (Class I, Level B). Needs discussion in MDT",
+      "level": "info",
+      "message": "SAVR or TAVI are recommended according to individual clinical, anatomical, and procedural characteristics, requiring Heart Team assessment (Class I, Level B). Needs discussion in MDT",
+      "condition_operator": "AND",
+      "conditions": [
+        {
+          "input_id": "what_is_the_patient_s_age",
+          "op": "equals",
+          "value": "<75",
+          "join_with_previous": "AND"
+        },
+        {
+          "input_id": "what_is_the_sts_prom_euroscore_ii_score",
+          "op": "equals",
+          "value": ">=4 AND <=8",
           "join_with_previous": "AND"
         }
       ]
