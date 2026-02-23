@@ -140,6 +140,12 @@
           "op": "equals",
           "value": ">=4 AND <=8",
           "join_with_previous": "AND"
+        },
+        {
+          "input_id": "what_is_the_sts_prom_euroscore_ii_score",
+          "op": "equals",
+          "value": ">=8",
+          "join_with_previous": "AND"
         }
       ]
     },
@@ -187,5 +193,6 @@
   "scoring_recommendations": [],
   "scoring_mode": "signed",
   "category": "Cardiac",
-  "subcategory": "Aortic"
+  "subcategory": "Aortic",
+  "github_path": "calculators/Cardiac/Aortic/tavi_vs_savr_tool_trial.json"
 }
