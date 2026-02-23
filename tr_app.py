@@ -63,7 +63,11 @@ def evaluate_rules(tool, values):
     def condition_match(cond):
         input_id = cond.get("input_id")
         expected = cond.get("value")
-        return values.get(input_id) == expected
+        op = str(cond.get("op", "equals")).strip().lower()
+        actual = values.get(input_id)
+        if op == "not_equals":
+            return actual != expected
+        return actual == expected
 
     def evaluate_condition_expression(rule):
         conditions = rule.get("conditions", [])
@@ -99,31 +103,33 @@ def evaluate_rules(tool, values):
         ratio = matched_count / len(conditions)
         return is_match, matched_count, ratio, len(conditions)
 
-    best_match = None
-    best_count = 0
-    best_ratio = 0.0
-    best_total_conditions = 0
+    matches = []
     for rule in tool.get("rules", []):
         is_match, matched, ratio, condition_count = evaluate_condition_expression(rule)
         if not is_match:
             continue
-        if ratio == 1.0 and best_ratio == 1.0:
-            if condition_count > best_total_conditions:
-                best_count = matched
-                best_ratio = ratio
-                best_total_conditions = condition_count
-                best_match = rule
-                continue
-        if matched > best_count or (matched == best_count and ratio > best_ratio):
-            best_count = matched
-            best_ratio = ratio
-            best_total_conditions = condition_count
-            best_match = rule
+        matches.append(
+            {
+                "rule": rule,
+                "matched": matched,
+                "ratio": ratio,
+                "condition_count": condition_count,
+            }
+        )
 
-    if best_match and best_count > 0:
-        return best_match.get("level", "info"), best_match.get("message", "")
+    if not matches:
+        return []
 
-    return None, None
+    matches.sort(
+        key=lambda m: (
+            1 if m["ratio"] == 1.0 else 0,
+            m["matched"],
+            m["ratio"],
+            m["condition_count"],
+        ),
+        reverse=True,
+    )
+    return matches
 
 
 def compute_scores(tool, values):
@@ -172,7 +178,8 @@ def evaluate_score_recommendation(tool, values, total_score):
                 input_id = cond.get("input_id")
                 expected = cond.get("value")
                 actual = values.get(input_id)
-                if actual == expected:
+                op = str(cond.get("op", "equals")).strip().lower()
+                if (op == "not_equals" and actual != expected) or (op != "not_equals" and actual == expected):
                     matched += 1
             if conditions and matched != len(conditions):
                 continue
@@ -301,9 +308,13 @@ def main():
 
     st.divider()
     st.subheader("Results")
-    level, message = evaluate_rules(tool, values)
-    if level and message:
-        render_message(level, message)
+    matches = evaluate_rules(tool, values)
+    for match in matches:
+        rule = match["rule"]
+        level = rule.get("level", "info")
+        message = rule.get("message", "")
+        if level and message:
+            render_message(level, message)
 
     if tool.get("scoring_rules"):
         plus, minus, total = compute_scores(tool, values)
