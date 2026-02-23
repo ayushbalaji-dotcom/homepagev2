@@ -480,6 +480,12 @@ def main():
         id_to_label = build_label_maps(tool.get("inputs", []))
         st.graphviz_chart(build_decision_tree_graph(tool, id_to_label, values))
 
+    image_to_show = tool.get("guideline_image")
+    if image_to_show:
+        st.divider()
+        st.subheader("Guideline Table Image")
+        st.image(image_to_show, use_container_width=True)
+
 
 if __name__ == "__main__":
     main()
