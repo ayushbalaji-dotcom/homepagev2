@@ -5,14 +5,21 @@
     {
       "id": "what_is_the_patient_s_age",
       "label": "What is the patient's age?",
-      "type": "number",
-      "options": []
+      "type": "select",
+      "options": [
+        "<75",
+        ">=75"
+      ]
     },
     {
       "id": "what_is_the_sts_prom_euroscore_ii_score",
       "label": "What is the STS-PROM/EuroSCORE II score?",
-      "type": "number",
-      "options": []
+      "type": "select",
+      "options": [
+        "<4",
+        ">=4 to <8",
+        ">=8"
+      ]
     },
     {
       "id": "is_the_patient_chest_anatomy_suitable_for_surgery",
@@ -118,7 +125,7 @@
         {
           "input_id": "what_is_the_sts_prom_euroscore_ii_score",
           "op": "equals",
-          "value": ">8",
+          "value": "<4",
           "join_with_previous": "AND"
         }
       ]
@@ -138,7 +145,7 @@
         {
           "input_id": "what_is_the_sts_prom_euroscore_ii_score",
           "op": "equals",
-          "value": ">=4 AND <=8",
+          "value": ">=4 to <8",
           "join_with_previous": "AND"
         },
         {
@@ -210,7 +217,7 @@
         {
           "input_id": "what_is_the_sts_prom_euroscore_ii_score",
           "op": "equals",
-          "value": ">=4 AND <=8",
+          "value": "<4",
           "join_with_previous": "AND"
         }
       ]
