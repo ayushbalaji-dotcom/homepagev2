@@ -1,9 +1,14 @@
+import base64
 import json
 import os
+from urllib import request, error
 
 import streamlit as st
 
 CALCULATORS_DIR = "calculators"
+GITHUB_REPO = "ayushbalaji-dotcom/homepagev2"
+GITHUB_BRANCH = "main"
+GITHUB_CALCULATORS_DIR = "calculators"
 
 CATEGORIES = {
     "Cardiac": ["Coronary", "Aortic", "Tricuspid", "Mitral", "Pulmonary", "Arrhythmia", "Miscellaneous"],
@@ -52,6 +57,58 @@ def load_calculators():
             )
 
     return calculators
+
+
+def get_github_token():
+    return st.secrets.get("github_token") or os.environ.get("GITHUB_TOKEN")
+
+
+def github_request(method: str, url: str, token: str, payload: dict | None = None):
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "calculator-home",
+        "Authorization": f"Bearer {token}",
+    }
+    data = None
+    if payload is not None:
+        data = json.dumps(payload).encode("utf-8")
+    req = request.Request(url, method=method, headers=headers, data=data)
+    with request.urlopen(req) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def save_calculator_to_github(file_bytes: bytes, filename: str, category: str, subcategory: str):
+    token = get_github_token()
+    if not token:
+        return False, "Missing GitHub token. Add github_token to Streamlit secrets."
+
+    if subcategory:
+        path = f"{GITHUB_CALCULATORS_DIR}/{category}/{subcategory}/{filename}"
+    else:
+        path = f"{GITHUB_CALCULATORS_DIR}/{category}/{filename}"
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{path}"
+
+    existing_sha = None
+    try:
+        existing = github_request("GET", f"{url}?ref={GITHUB_BRANCH}", token)
+        existing_sha = existing.get("sha")
+    except error.HTTPError as exc:
+        if exc.code != 404:
+            return False, f"GitHub lookup failed: {exc}"
+
+    payload = {
+        "message": f"Add/Update calculator {filename}",
+        "content": base64.b64encode(file_bytes).decode("utf-8"),
+        "branch": GITHUB_BRANCH,
+    }
+    if existing_sha:
+        payload["sha"] = existing_sha
+
+    try:
+        github_request("PUT", url, token, payload)
+        return True, f"Saved to GitHub: {path}"
+    except error.HTTPError as exc:
+        return False, f"GitHub save failed: {exc}"
 
 
 def render_message(level, message):
@@ -304,6 +361,7 @@ def main():
             subcategory = st.selectbox("Subcategory", CATEGORIES[category])
         upload = st.file_uploader("Upload calculator JSON", type=["json"])
         overwrite = st.checkbox("Overwrite if name exists", value=False)
+        save_to_github = st.checkbox("Also save to GitHub", value=False)
 
         if upload is not None:
             target_dir = os.path.join(CALCULATORS_DIR, category)
@@ -315,9 +373,16 @@ def main():
             if os.path.exists(dest) and not overwrite:
                 st.warning(f"{filename} already exists. Check overwrite to replace it.")
             else:
+                file_bytes = upload.getbuffer()
                 with open(dest, "wb") as f:
-                    f.write(upload.getbuffer())
+                    f.write(file_bytes)
                 st.success(f"Uploaded {filename}.")
+                if save_to_github:
+                    ok, message = save_calculator_to_github(bytes(file_bytes), filename, category, subcategory)
+                    if ok:
+                        st.success(message)
+                    else:
+                        st.warning(message)
                 st.rerun()
 
         st.divider()
