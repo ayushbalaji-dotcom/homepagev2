@@ -85,7 +85,7 @@
       ]
     },
     {
-      "name": "SAVR Recommended (Operable, Unsuitable TF TAVI - Class I, Level B)",
+      "name": "SAVR is recommended for operable patients unsuitable for transfemoral TAVI (Class I, Level B)",
       "level": "info",
       "message": "SAVR is recommended for operable patients unsuitable for transfemoral TAVI (Class I, Level B)",
       "condition_operator": "AND",
@@ -112,7 +112,7 @@
     },
     {
       "name": "TAVI Recommended (Class I, Level A)",
-      "level": "warning",
+      "level": "success",
       "message": "TAVI Recommended (Class I, Level A)",
       "condition_operator": "AND",
       "conditions": [
