@@ -1,5 +1,6 @@
 import base64
 import json
+import mimetypes
 import os
 from urllib import request, error
 
@@ -109,6 +110,51 @@ def save_calculator_to_github(file_bytes: bytes, filename: str, category: str, s
         return True, f"Saved to GitHub: {path}"
     except error.HTTPError as exc:
         return False, f"GitHub save failed: {exc}"
+
+
+def build_raw_github_url(path: str) -> str:
+    return f"https://raw.githubusercontent.com/{GITHUB_REPO}/{GITHUB_BRANCH}/{path}"
+
+
+def fetch_github_file(path: str, token: str):
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{path}?ref={GITHUB_BRANCH}"
+    try:
+        data = github_request("GET", url, token)
+    except error.HTTPError as exc:
+        return None, f"GitHub fetch failed: {exc}"
+    content = data.get("content")
+    if not content:
+        return None, "GitHub response missing content."
+    try:
+        return base64.b64decode(content), None
+    except (ValueError, TypeError) as exc:
+        return None, f"GitHub content decode failed: {exc}"
+
+
+def resolve_guideline_image(image_value):
+    if not image_value:
+        return None, None
+    if isinstance(image_value, str):
+        return image_value, None
+    if isinstance(image_value, dict):
+        raw_url = image_value.get("raw_url") or image_value.get("url")
+        path = image_value.get("github_path") or image_value.get("path")
+        mime = image_value.get("mime")
+        token = get_github_token()
+        if token and path:
+            content, err = fetch_github_file(path, token)
+            if content:
+                if not mime:
+                    mime = mimetypes.guess_type(path)[0] or "image/png"
+                data_url = f"data:{mime};base64,{base64.b64encode(content).decode('utf-8')}"
+                return data_url, None
+            if raw_url:
+                return raw_url, err
+        if raw_url:
+            return raw_url, None
+        if path:
+            return build_raw_github_url(path), None
+    return None, "Unsupported guideline image format."
 
 
 def render_message(level, message):
@@ -480,11 +526,13 @@ def main():
         id_to_label = build_label_maps(tool.get("inputs", []))
         st.graphviz_chart(build_decision_tree_graph(tool, id_to_label, values))
 
-    image_to_show = tool.get("guideline_image")
+    image_to_show, image_error = resolve_guideline_image(tool.get("guideline_image"))
     if image_to_show:
         st.divider()
         st.subheader("Guideline Table Image")
         st.image(image_to_show, use_container_width=True)
+    elif image_error:
+        st.caption(image_error)
 
 
 if __name__ == "__main__":
