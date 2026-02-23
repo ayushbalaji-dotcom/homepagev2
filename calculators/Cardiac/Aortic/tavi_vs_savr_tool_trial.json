@@ -145,7 +145,7 @@
           "input_id": "what_is_the_sts_prom_euroscore_ii_score",
           "op": "equals",
           "value": ">=8",
-          "join_with_previous": "AND"
+          "join_with_previous": "OR"
         }
       ]
     },
