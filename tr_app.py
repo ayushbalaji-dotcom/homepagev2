@@ -63,12 +63,13 @@ def get_github_token():
     return st.secrets.get("github_token") or os.environ.get("GITHUB_TOKEN")
 
 
-def github_request(method: str, url: str, token: str, payload: dict | None = None):
+def github_request(method: str, url: str, token: str | None, payload: dict | None = None):
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "calculator-home",
-        "Authorization": f"Bearer {token}",
     }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     data = None
     if payload is not None:
         data = json.dumps(payload).encode("utf-8")
@@ -109,6 +110,57 @@ def save_calculator_to_github(file_bytes: bytes, filename: str, category: str, s
         return True, f"Saved to GitHub: {path}"
     except error.HTTPError as exc:
         return False, f"GitHub save failed: {exc}"
+
+
+def list_github_calculator_paths(token: str | None) -> list[str]:
+    def walk(dir_path: str) -> list[str]:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{dir_path}?ref={GITHUB_BRANCH}"
+        entries = github_request("GET", url, token)
+        paths: list[str] = []
+        if isinstance(entries, dict):
+            entries = [entries]
+        for entry in entries:
+            if entry.get("type") == "dir":
+                paths.extend(walk(entry.get("path", "")))
+            elif entry.get("type") == "file" and str(entry.get("name", "")).endswith(".json"):
+                paths.append(entry.get("path"))
+        return paths
+
+    return walk(GITHUB_CALCULATORS_DIR)
+
+
+def sync_calculators_from_github() -> tuple[int, str]:
+    token = get_github_token()
+    try:
+        paths = list_github_calculator_paths(token)
+    except Exception as exc:
+        return 0, f"GitHub sync failed: {exc}"
+
+    synced = 0
+    for path in paths:
+        try:
+            url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{path}?ref={GITHUB_BRANCH}"
+            content_obj = github_request("GET", url, token)
+            encoded = str(content_obj.get("content", "")).replace("\n", "")
+            if not encoded:
+                continue
+            data = base64.b64decode(encoded)
+        except Exception:
+            continue
+
+        rel_path = path
+        if rel_path.startswith(f"{GITHUB_CALCULATORS_DIR}/"):
+            rel_path = rel_path[len(f"{GITHUB_CALCULATORS_DIR}/") :]
+        local_path = os.path.join(CALCULATORS_DIR, rel_path)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        try:
+            with open(local_path, "wb") as f:
+                f.write(data)
+            synced += 1
+        except OSError:
+            continue
+
+    return synced, f"Synced {synced} calculators from GitHub."
 
 
 def build_raw_github_url(path: str) -> str:
@@ -408,6 +460,10 @@ def main():
 
     if "selected_calc_id" not in st.session_state:
         st.session_state.selected_calc_id = None
+    if "sync_message" not in st.session_state:
+        st.session_state.sync_message = ""
+    if "sync_count" not in st.session_state:
+        st.session_state.sync_count = 0
 
     with st.sidebar:
         st.subheader("Add Calculator")
@@ -440,6 +496,14 @@ def main():
                     else:
                         st.warning(message)
                 st.rerun()
+
+        if st.button("Sync from GitHub"):
+            synced, message = sync_calculators_from_github()
+            st.session_state.sync_count = synced
+            st.session_state.sync_message = message
+            st.rerun()
+        if st.session_state.sync_message:
+            st.caption(st.session_state.sync_message)
 
         st.divider()
         st.subheader("Delete Calculator")
