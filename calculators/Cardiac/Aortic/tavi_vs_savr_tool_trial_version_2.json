@@ -78,7 +78,7 @@
       "name": "Class 1",
       "level": "success",
       "message": "SAVR Recommended (Young, Low Risk - Class I, Level B)",
-      "condition_operator": "OR",
+      "condition_operator": "AND",
       "conditions": [
         {
           "input_id": "what_is_the_patient_s_age",
