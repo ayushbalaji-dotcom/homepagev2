@@ -315,7 +315,7 @@
   },
   "category": "Cardiac",
   "subcategory": "Tricuspid",
-  "github_path": "calculators/tricuspid_repair.json",
+  "github_path": "calculators/Cardiac/Tricuspid/concomitant_tricuspid_repair_evaluator.json",
   "scoring_mode": "signed",
   "scoring_recommendations": [],
   "guideline_image": {
