@@ -281,6 +281,18 @@
           "op": "equals",
           "value": "Yes",
           "join_with_previous": "OR"
+        },
+        {
+          "input_id": "does_the_patient_require_non_aortic_valve_cardiac_surgery",
+          "op": "equals",
+          "value": "Yes",
+          "join_with_previous": "AND"
+        },
+        {
+          "input_id": "does_the_patient_require_non_aortic_valve_cardiac_surgery",
+          "op": "equals",
+          "value": "No",
+          "join_with_previous": "OR"
         }
       ]
     },
