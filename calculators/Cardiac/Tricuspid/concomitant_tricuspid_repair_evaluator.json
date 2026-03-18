@@ -32,8 +32,8 @@
       ]
     },
     {
-      "id": "annulus_dilated",
-      "label": "Tricuspid annulus dilated?",
+      "id": "tricuspid_annulus_dilated_40mm_or_21mm_m2",
+      "label": "Tricuspid annulus dilated (>=40mm or 21mm/m2)?",
       "type": "select",
       "options": [
         "Yes",
@@ -136,7 +136,7 @@
       "weight": 1
     },
     {
-      "input_id": "annulus_dilated",
+      "input_id": "is_the_patient_having_left_sided_valve_surgery",
       "favor_values": [
         "Yes"
       ],
@@ -233,6 +233,17 @@
       ],
       "invert_favor": true,
       "weight": 1
+    },
+    {
+      "input_id": "tricuspid_annulus_dilated_40mm_or_21mm_m2",
+      "favor_values": [
+        "Yes"
+      ],
+      "against_values": [
+        "No"
+      ],
+      "invert_favor": false,
+      "weight": 1
     }
   ],
   "rules": [
@@ -295,7 +306,7 @@
           "join_with_previous": "AND"
         },
         {
-          "input_id": "annulus_dilated",
+          "input_id": "tricuspid_annulus_dilated_40mm_or_21mm_m2",
           "op": "equals",
           "value": "Yes",
           "join_with_previous": "AND"
