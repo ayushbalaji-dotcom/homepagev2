@@ -330,8 +330,8 @@
   "scoring_mode": "signed",
   "scoring_recommendations": [],
   "guideline_image": {
-    "github_path": "calculators/tricuspid_repair_guideline.png",
-    "raw_url": "https://raw.githubusercontent.com/ayushbalaji-dotcom/homepagev2/main/calculators/tricuspid_repair_guideline.png",
+    "github_path": "calculators/Cardiac/Tricuspid/concomitant_tricuspid_repair_evaluator_guideline.png",
+    "raw_url": "https://raw.githubusercontent.com/ayushbalaji-dotcom/homepagev2/main/calculators/Cardiac/Tricuspid/concomitant_tricuspid_repair_evaluator_guideline.png",
     "mime": "image/png"
   }
 }
